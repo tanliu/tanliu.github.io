@@ -1,9 +1,9 @@
 ---
-layout:     post
+layout: post
 title: zookeeper部署与配置详解
-date: '2018-07-31'
+date: 2018-07-31
 tags:
-- zookeeper
+   - zookeeper
 ---
 ### zookeeper环境配置
 1.单机环境配置
@@ -40,6 +40,5 @@ ephemeralOwner = 0x0
 dataLength = 11
 numChildren = 0
 ```
-
 
 

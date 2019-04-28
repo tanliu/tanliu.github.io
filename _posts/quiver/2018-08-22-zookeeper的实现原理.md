@@ -1,14 +1,14 @@
 ---
-layout:     post
+layout: post
 title: zookeeper的实现原理
-date: '2018-08-22'
+date: 2018-08-22
 tags:
-- zookeeper
+   - zookeeper
 ---
 ##  数据流
 1.读请求，可以到任何节点
 2.写请求，最终会到leader中进行同步
-![IMAGE](/images/q/IMAGE) 
+![IMAGE](http://cn-isoda-oss.yy.com/admin/video/C6E32F174CAE2F7C81994DEE7CC98966.jpg) 
 
 - Follower节点收到客户端写请求
 - Follower把写请求转发给Leader
@@ -60,7 +60,7 @@ tags:
 1.如果Follower回复Yes，那么Leader会给每个Follower发送commit,Follower回复ack
 2.如果Follower回复NO,那么Leader会向Follower发送rollback请求
 
-![IMAGE](/images/q/IMAGE)
+![IMAGE](http://cn-isoda-oss.yy.com/admin/video/6876AD745EC84B110971B199B876C1F6.jpg)
 ### 优点&缺点
 - 优点：原理比较简单，容易实现
 - 缺点：同点阻塞、单点问题、脑裂、太过保守
@@ -78,7 +78,6 @@ tags:
 
 
 推导过程：
-
 
 
 

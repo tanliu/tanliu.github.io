@@ -1,8 +1,7 @@
 ---
-layout:     post
+layout: post
 title: zookeeper Api使用
-date: '2018-10-04'
-tags: []
+date: 2018-10-04
 ---
 #### 数据的增删改查操作（test）
 ```
@@ -70,9 +69,10 @@ public static void main(String[] args) {
 
 
 ### 事件的原理
-![IMAGE](/images/q/IMAGE)
+![IMAGE](http://cn-isoda-oss.yy.com/admin/video/9C5FD7E42BB0FCBB770C2501E800285C.jpg)
 
 ### 查询节点
+
 
 
 
