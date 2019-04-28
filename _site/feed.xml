@@ -1,0 +1,1142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>坛子成长记</title>
+    <description></description>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sun, 28 Apr 2019 22:20:58 +0800</pubDate>
+    <lastBuildDate>Sun, 28 Apr 2019 22:20:58 +0800</lastBuildDate>
+    <generator>Jekyll v3.8.5</generator>
+    
+      <item>
+        <title>JVM性能调优</title>
+        <description>&lt;h1 id=&quot;理论&quot;&gt;理论&lt;/h1&gt;
+&lt;h1 id=&quot;工具&quot;&gt;工具&lt;/h1&gt;
+&lt;h1 id=&quot;数据&quot;&gt;数据&lt;/h1&gt;
+&lt;h1 id=&quot;经验&quot;&gt;经验&lt;/h1&gt;
+
+&lt;hr /&gt;
+&lt;ul&gt;
+  &lt;li&gt;jstask&lt;/li&gt;
+  &lt;li&gt;jstat&lt;/li&gt;
+  &lt;li&gt;jmap (内存，堆的信息)&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Thu, 25 Apr 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/04/25/JVM%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/04/25/JVM%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/</guid>
+        
+        <category>jvm</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>JVM垃圾收集器</title>
+        <description>&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/891661199B4F3B0BB147AD3A5F4B25A5.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Serial:是一种单线程的垃圾收集器
+ParNew:&lt;/p&gt;
+
+&lt;h3 id=&quot;serial-收集器&quot;&gt;Serial 收集器&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/B02A1C2962ED02310A23AA62FB0CC0E7.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;开启选项：-XX:+SerialGC&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;当内存不足时，串行GC设置停顿标识，待所有线程都进入安全点(Safepoint)时，应用线程暂停，串行GC开始工作，采用单线程方式回收空间并整理内存。单线程也意味着复杂度更低、占用内存更少，但同时也意味着不能有效利用多核优势。事实上，串行收集器特别适合堆内存不高、单核甚至双核CPU的场合。&lt;/p&gt;
+
+&lt;h3 id=&quot;parallel-scavenge&quot;&gt;Parallel Scavenge:&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/3A41D141847D86F2D9246572759FE6BE.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;开启选项：-XX:+UseParallelGC或-XX:+UseParallelOldGC(可互相激活)
+-XX:MaxGCPauseMillis 垃圾收集停顿时间
+-XX:GCTimeRatio&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;复制算法(新生代收集器)&lt;/li&gt;
+  &lt;li&gt;多线程收集器&lt;/li&gt;
+  &lt;li&gt;达到可控制的吞吐量&lt;/li&gt;
+  &lt;li&gt;吞吐量:CPU用于运行用户代码时间与CPU消耗总时间的比值&lt;/li&gt;
+  &lt;li&gt;吞吐量=执行用户代码时间/(执行用户代码时间 +垃圾回
+收使用的时间)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;cms-收集器&quot;&gt;CMS 收集器&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/0C671DF4BE8E9735083B69EEEA58B0A9.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;开启选项：-XX:+UseConcMarkSweepGC&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;工作过程
+    &lt;ul&gt;
+      &lt;li&gt;初始标记&lt;/li&gt;
+      &lt;li&gt;并发标记&lt;/li&gt;
+      &lt;li&gt;重新标记&lt;/li&gt;
+      &lt;li&gt;并发清理&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;优点
+    &lt;ul&gt;
+      &lt;li&gt;并发收集&lt;/li&gt;
+      &lt;li&gt;低停顿&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;缺点
+    &lt;ul&gt;
+      &lt;li&gt;占用CPU资源&lt;/li&gt;
+      &lt;li&gt;无法处理浮动垃圾（打扫过程中产生垃圾）&lt;/li&gt;
+      &lt;li&gt;出现Concurrent Mode Failure&lt;/li&gt;
+      &lt;li&gt;空间碎片（因为用了标记清理）&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;g1收集器&quot;&gt;G1收集器&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/07E9478587FC137EC2B91FD962855FD4.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;之前介绍的几组垃圾收集器组合，都有几个共同点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;年轻代、老年代是独立且连续的内存块；&lt;/li&gt;
+  &lt;li&gt;年轻代收集使用单eden、双survivor进行复制算法；&lt;/li&gt;
+  &lt;li&gt;老年代收集必须扫描整个老年代区域；&lt;/li&gt;
+  &lt;li&gt;都是以尽可能少而快地执行GC为设计原则。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;ul&gt;
+  &lt;li&gt;工作过程
+    &lt;ul&gt;
+      &lt;li&gt;初始标记&lt;/li&gt;
+      &lt;li&gt;并发标记&lt;/li&gt;
+      &lt;li&gt;重新标记&lt;/li&gt;
+      &lt;li&gt;并发清理&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;优点
+    &lt;ul&gt;
+      &lt;li&gt;并发收集（可以降低stop to work的时间）&lt;/li&gt;
+      &lt;li&gt;可预测停顿（降低了停顿时间）&lt;/li&gt;
+      &lt;li&gt;空间整合&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;缺点
+    &lt;ul&gt;
+      &lt;li&gt;占用CPU资源&lt;/li&gt;
+      &lt;li&gt;无法处理浮动垃圾&lt;/li&gt;
+      &lt;li&gt;出现Concurrent Mode Failure
+        &lt;h3 id=&quot;g1的内存模型&quot;&gt;G1的内存模型&lt;/h3&gt;
+        &lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/C94BA456E4C6AC9E41717C6F9C6FB394.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+在G1中，新生代、老年代、Surviver区是不是物理连续的。
+&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/6E70243DAF25320EB2CE1F8A5788CF24.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+Region:
+收集的最小单元是Region
+卡片 Card:
+在每个分区内部又被分成了若干个大小为512 Byte卡片(Card)，标识堆内存最小可用粒度所有分区的卡片将会记录在全局卡片表(Global Card Table)中，分配的对象会占用物理上连续的若干个卡片，当查找对分区内对象的引用时便可通过记录卡片来查找该引用对象。每次对内存的回收，都是对指定分区的卡片进行处理。&lt;/p&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;本地缓存处理tlab&quot;&gt;本地缓存处理（TLAB）&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/915C5E0BFFE50AFE8D11115E258AAD22.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+在堆内存中TLAB由于年代发生变化，就会更新到老年代中。&lt;/p&gt;
+
+&lt;h3 id=&quot;分区模型&quot;&gt;分区模型&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/8F9B412076EB703ED09D387080BC20EA.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+为了解决回收时不扫全堆的问题。G1分维护两个列表：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;可以回收的列表&lt;/li&gt;
+  &lt;li&gt;新生代引用老年代的关系表。（Region之前的引用）&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Thu, 25 Apr 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/04/25/JVM%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/04/25/JVM%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/</guid>
+        
+        <category>jvm</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>JVM学习</title>
+        <description>&lt;p&gt;java学习文档：&lt;a href=&quot;https://docs.oracle.com/javase/specs/jls/se8/html/index.html&quot;&gt;地址&lt;/a&gt;&lt;/p&gt;
+&lt;h1 id=&quot;jvm简介&quot;&gt;JVM简介&lt;/h1&gt;
+&lt;p&gt;Java 虚拟机 Java 虚拟机（Java virtual machine，JVM）是运行 Java 程序必不可少的机制。JVM实现了Java语言最重要的特征：即平台无关性。原理：编译后的 Java 程序指令并不直接在硬件系统的 CPU 上执行，而是由 JVM 执行。JVM屏蔽了与具体平台相关的信息，使Java语言编译程序只需要生成在JVM上运行的目标字节码（.class）,就可以在多种平台上不加修改地运行。Java 虚拟机在执行字节码时，把字节码解释成具体平台上的机器指令执行。因此实现java平台无关性。它是 Java 程序能在多平台间进行无缝移植的可靠保证，同时也是 Java 程序的安全检验引擎（还进行安全检查）。&lt;/p&gt;
+
+&lt;p&gt;JVM 是 编译后的 Java 程序（.class文件）和硬件系统之间的接口 （ 编译后：javac 是收录于 JDK 中的 Java 语言编译器。该工具可以将后缀名为. java 的源文件编译为后缀名为. class 的可以运行于 Java 虚拟机的字节码。）&lt;/p&gt;
+
+&lt;h1 id=&quot;jvm简介-1&quot;&gt;JVM简介&lt;/h1&gt;
+&lt;p&gt;&lt;img src=&quot;https://user-gold-cdn.xitu.io/2019/4/22/16a455df39eae6ce?w=1426&amp;amp;h=922&amp;amp;f=png&amp;amp;s=444572&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;JVM = 类加载器 classloader + 执行引擎 execution engine + 运行时数据区域 runtime data area&lt;/p&gt;
+
+&lt;h2 id=&quot;类加载器&quot;&gt;类加载器&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/9D629FB380FF9BB2833082B54DBB5E15.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;类装载器
+  &lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/F0F8D3C743F1AE00AC550A4E963F44A1.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+    &lt;ul&gt;
+      &lt;li&gt;启动类装载器（Bootstrap Class Loader）&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ul&gt;
+      &lt;li&gt;这个类加载器被创建，它负责加载虚拟机的核心类库，如 java.lang.* 等。例如 java.lang.Object 就是由根类加载器加载的。需要注意的是，这个类加载器不是用 java 语言写的.装载核心lib
+      - 扩展类装载器(Extension class loade)&lt;/li&gt;
+      &lt;li&gt;jdk/lib/ext目录下等api
+      - 系统类装载器(AppClass Loader)&lt;/li&gt;
+      &lt;li&gt;classpath目录下的
+      - 自定义类装载器&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;装载器过程
+&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/10B3E8BEBD95BECCD1C5053E77EBBCFE.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+    &lt;ul&gt;
+      &lt;li&gt;验证：字节码等验证&lt;/li&gt;
+      &lt;li&gt;准备：为变量分配内存，为类变量初始化(private static int size = 12的语句，初始化size=0)&lt;/li&gt;
+      &lt;li&gt;解释：接口，方法，变更等解释&lt;/li&gt;
+      &lt;li&gt;初始化（size=12）&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;双亲委派
+    &lt;ul&gt;
+      &lt;li&gt;把class委派给父亲。直到启动类装载器。验证是否是自己的职责&lt;/li&gt;
+      &lt;li&gt;安全性：职责分明后。指定的类指定加载器加载。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;类初始化的顺序&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;运行时数据区&quot;&gt;运行时数据区&lt;/h2&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;橙色:线程共享
+灰色区：线程不共享&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;pc寄存器&quot;&gt;PC寄存器：&lt;/h3&gt;
+&lt;p&gt;每个线程都有一个程序计数器，是线程私有的,就是一个指针，指向方法区中的方法字节码(用来存储指向下一条指令的地址,也即将 要执行的指令代码)，由执行引擎读取下一条指令，是一个非常小的内 存空间，几乎可以忽略不记。&lt;/p&gt;
+
+&lt;h3 id=&quot;java栈&quot;&gt;java栈：&lt;/h3&gt;
+&lt;p&gt;在线程创建的时候就会被创建，跟随线程的生命周期，所以栈是线程私有的。只要线程结束，栈就会被回收。其中，8种数据类型的变量+对象引用变量+实例方法都是在函数的栈内存中分配。&lt;/p&gt;
+
+&lt;p&gt;栈存储如下：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;栈操作：记录出栈、入栈操作&lt;/li&gt;
+  &lt;li&gt;指向运行时常量池的引用&lt;/li&gt;
+  &lt;li&gt;方法出口（return）&lt;/li&gt;
+  &lt;li&gt;动态链接&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;本地方法栈&quot;&gt;本地方法栈&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;native区这个与堆外内存有关&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;堆&quot;&gt;堆&lt;/h3&gt;
+&lt;p&gt;新生代+老年代+方法区
+新生代分为：eden+surivor+spaces
+老年代：老年代
+元空间&lt;/p&gt;
+
+&lt;h3 id=&quot;方法区&quot;&gt;方法区&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;方法区是一个逻辑性的东西，永久代只是方法区的一个实现&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;方法区 jvm中发展：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;JDK1.6有之前：有永久代，常量池方法区&lt;/li&gt;
+  &lt;li&gt;JDK1.7: 有永久代，常量池在堆&lt;/li&gt;
+  &lt;li&gt;JDK1.8: 没有永久代，常量池在无空间中&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;方法区保存的信息：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;类信息
+    &lt;ul&gt;
+      &lt;li&gt;类的版本&lt;/li&gt;
+      &lt;li&gt;字段&lt;/li&gt;
+      &lt;li&gt;方法&lt;/li&gt;
+      &lt;li&gt;接口&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;静态变更&lt;/li&gt;
+  &lt;li&gt;常量&lt;/li&gt;
+  &lt;li&gt;类信息&lt;/li&gt;
+  &lt;li&gt;运行时常量池&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;堆与栈的交互&quot;&gt;堆与栈的交互&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/8D02BA08D1E271037C31A128A5D4A701.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;栈引用到java堆中获取对象实例数据。&lt;/li&gt;
+  &lt;li&gt;java堆中拿是到方法区中获取对象类型信息。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;执行引擎&quot;&gt;执行引擎&lt;/h2&gt;
+
+&lt;h2 id=&quot;栈的详解&quot;&gt;栈的详解&lt;/h2&gt;
+&lt;h3 id=&quot;栈的简介&quot;&gt;栈的简介&lt;/h3&gt;
+&lt;p&gt;以上已经作了基本解释&lt;/p&gt;
+&lt;h3 id=&quot;栈帧&quot;&gt;栈帧&lt;/h3&gt;
+&lt;ul class=&quot;task-list&quot;&gt;
+  &lt;li class=&quot;task-list-item&quot;&gt;&lt;input type=&quot;checkbox&quot; class=&quot;task-list-item-checkbox&quot; disabled=&quot;disabled&quot; /&gt;TODO&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;逃逸分析与栈上分配&quot;&gt;逃逸分析与栈上分配&lt;/h3&gt;
+&lt;p&gt;逃逸分析：分析对象的方式，把对象引用赋值给方法外的引用。
+栈上分配：把没有逃逸的对象在栈空间上分配空间&lt;/p&gt;
+
+&lt;h2 id=&quot;堆的详解&quot;&gt;堆的详解&lt;/h2&gt;
+
+&lt;p&gt;##问题&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;为什么可以用Object类&lt;/li&gt;
+  &lt;li&gt;java启动类是哪个&lt;/li&gt;
+  &lt;li&gt;双亲委派与沙箱安全机制&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;对象创建&quot;&gt;对象创建&lt;/h2&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;在对象创建需求给对象分区空间
+&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/95842EA4B90865EEC2FDE5F9DC2DD7DC.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;给对象分配内存&lt;/li&gt;
+  &lt;li&gt;线程安全性问题&lt;/li&gt;
+  &lt;li&gt;初始化对象&lt;/li&gt;
+  &lt;li&gt;执行构造方法&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;如何分配的对&quot;&gt;如何分配的对&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;指针碰撞&lt;/li&gt;
+  &lt;li&gt;空间列表&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;线程安全问题&quot;&gt;线程安全问题&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;线程同步&lt;/li&gt;
+  &lt;li&gt;本地线程分配缓冲（TLAB）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;对象的结构&quot;&gt;对象的结构&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;Header信息
+&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/2F71F8488E035504141963C4804582FE.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+    &lt;ul&gt;
+      &lt;li&gt;自身运行时的数据
+        &lt;ul&gt;
+          &lt;li&gt;hashCode&lt;/li&gt;
+          &lt;li&gt;GC分代年龄&lt;/li&gt;
+          &lt;li&gt;锁状态标志&lt;/li&gt;
+          &lt;li&gt;线程持有锁&lt;/li&gt;
+          &lt;li&gt;偏向线程ID&lt;/li&gt;
+          &lt;li&gt;偏向时间戳&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;类型指针&lt;/li&gt;
+      &lt;li&gt;数组长度&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;对象的访问定位&quot;&gt;对象的访问定位&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/A8CC26A22986B6E785225329B557ADD4.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;句柄方式（内存空间，就是中间指针）&lt;/li&gt;
+  &lt;li&gt;直接指针（HostSpot）&lt;/li&gt;
+  &lt;li&gt;java堆中会存放访问类无数据的地址，reference存储&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;垃圾回收&quot;&gt;垃圾回收&lt;/h1&gt;
+&lt;h2 id=&quot;如何判断一个对象是垃圾&quot;&gt;如何判断一个对象是垃圾&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;引用计数法: 对象中添加一个引用计数器，当被引用时就+1操作。
+    &lt;ul&gt;
+      &lt;li&gt;优点：容易实现&lt;/li&gt;
+      &lt;li&gt;不足：性能差、无法解决双向引用的问题&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;可达性分析法
+    &lt;ul&gt;
+      &lt;li&gt;优点：解决双向引用的问题
+        &lt;h2 id=&quot;哪些可以作为gcroot&quot;&gt;哪些可以作为GCRoot&lt;/h2&gt;
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; - 虚拟机栈
+ - 方法区的类属性所引用的对象
+ - 方法区的
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;有哪些回收算法&quot;&gt;有哪些回收算法&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;标记清除：对于存活的标记，清理没有标记的
+    &lt;ul&gt;
+      &lt;li&gt;优点：简单&lt;/li&gt;
+      &lt;li&gt;不足：有内存碎片&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;复制算法（年轻代）
+minorGC会把Eden中的所有活的对象移动到servivor区，如果serviver区中放不下，剩下的活的对象会被移动到old区。
+当对象有eden出生后，再经过数年代后就进入old区&lt;/li&gt;
+  &lt;li&gt;标记整理
+标记存活的对象，然后把存活对象压缩到连续的内存中
+不足： 很占io&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;对象的创建方式&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;new&lt;/li&gt;
+  &lt;li&gt;反射&lt;/li&gt;
+  &lt;li&gt;clone&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;内存分配与回收策略&quot;&gt;内存分配与回收策略&lt;/h1&gt;
+&lt;ul&gt;
+  &lt;li&gt;对象优先在eden区分配&lt;/li&gt;
+  &lt;li&gt;大对象直接分配到老年代
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-verbose:gc -XX:+PrintGCDetails -Xms20M -Xmx20M -Xmn10M -XX:PretenureSizeThreshold=6M
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;长期存活的对象将进入才老年代
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-XX:MaxTenuringThreshold = 15
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;动态对象年龄判定&lt;/li&gt;
+  &lt;li&gt;空间分配担保&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Thu, 18 Apr 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/04/18/JVM%E5%AD%A6%E4%B9%A0/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/04/18/JVM%E5%AD%A6%E4%B9%A0/</guid>
+        
+        <category>java</category>
+        
+        <category>jvm</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>TCP、HTTP、HTTPS</title>
+        <description>&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/539B465A7785885AEB82C085773EE711.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;tcp头：目标端口号
+ip头：目前ip地址、源ip地址&lt;/p&gt;
+
+&lt;p&gt;3.深入分析tcp/ip&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;DNS解析&lt;/li&gt;
+  &lt;li&gt;网关进行数据传输&lt;/li&gt;
+  &lt;li&gt;路由协议&lt;/li&gt;
+  &lt;li&gt;握手协议（三次握手、四次挥手）
+&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/63A69E326A441B60D40E7511DD9CA1A3.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+    &lt;ul&gt;
+      &lt;li&gt;为什么要三次握手、两次握手可不可以？
+ 两次握手会有一下问题。当client 发起请求c1时，由于网络情况，c1还没有收到Server回应，以为请求丢失了（其实是网络延迟），然后再次发出了c2连接请求。server最终可能会收到两个连接请求。这样就会有两个连接。引用三次握手的解决无效请求创建连接，造成资源浪费的问题。&lt;/li&gt;
+      &lt;li&gt;为什么是四次挥手，三次可不可以？
+ 三个会有一个问题。最终server回关闭服务器后，发出的请求。client没有收到。造成client无法关闭。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;TCP流量控制（滑动窗口）
+    &lt;ul&gt;
+      &lt;li&gt;https://coolshell.cn/articles/11609.html&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Mon, 08 Apr 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/04/08/TCP-HTTP-HTTPS/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/04/08/TCP-HTTP-HTTPS/</guid>
+        
+        <category>网络</category>
+        
+        <category>http</category>
+        
+        <category>tcp</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>如何序列化java</title>
+        <description>&lt;p&gt;#序列化技术有哪些&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;java原生(不支持跨语言)&lt;/li&gt;
+  &lt;li&gt;xml&lt;/li&gt;
+  &lt;li&gt;json&lt;/li&gt;
+  &lt;li&gt;hessian&lt;/li&gt;
+  &lt;li&gt;protobuf&lt;/li&gt;
+  &lt;li&gt;avro&lt;/li&gt;
+  &lt;li&gt;kyro&lt;/li&gt;
+  &lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;#序列化
+会设置serialVersionUid。这个作为反序列化的标准。
+transient 修饰的不会序列化的。&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 26 Mar 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/26/%E5%A6%82%E4%BD%95%E5%BA%8F%E5%88%97%E5%8C%96java/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/26/%E5%A6%82%E4%BD%95%E5%BA%8F%E5%88%97%E5%8C%96java/</guid>
+        
+        <category>java</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>乐观锁与悲观锁原理及应用</title>
+        <description>&lt;p&gt;##乐观锁&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;不会对资源上锁。但是在更新时会判断其他线程在这之前有没有对数据进行修改，一般会使用&lt;strong&gt;版本号机制&lt;/strong&gt;或&lt;strong&gt;CAS操作&lt;/strong&gt;实现。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;版本号
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;update table set x=x+1, version=version+1 where id=#{id} and version=#{version};
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;CAS（ compare and set）
+ 更新版本不成功，不断重试真到成功&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;优点&quot;&gt;优点&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;不会产生死锁&lt;/li&gt;
+  &lt;li&gt;不用给资源加锁，提高性能
+    &lt;h3 id=&quot;不足&quot;&gt;不足&lt;/h3&gt;
+  &lt;/li&gt;
+  &lt;li&gt;如果机器同时拿到同一资源的话，会不断重试。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;悲观锁&quot;&gt;悲观锁&lt;/h2&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;总是假设最坏的情，当其他线程想要访问数据时，都需要阻塞挂起。可以依靠数据库实现，如行锁、读锁和写锁等，都是在操作之前加锁，在Java中，synchronized的思想也是悲观锁。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;读锁、写锁、行锁等&lt;/li&gt;
+  &lt;li&gt;synchronized&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;应用&quot;&gt;应用&lt;/h2&gt;
+
+&lt;p&gt;乐观锁：写比较少的情况下。冲突比较少的时候
+悲观锁：冲突比较多的时候&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 26 Mar 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/26/%E4%B9%90%E8%A7%82%E9%94%81%E4%B8%8E%E6%82%B2%E8%A7%82%E9%94%81%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/26/%E4%B9%90%E8%A7%82%E9%94%81%E4%B8%8E%E6%82%B2%E8%A7%82%E9%94%81%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8/</guid>
+        
+        <category>高并发</category>
+        
+        <category>java</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>NIO、BIO、AIO有区别</title>
+        <description>&lt;p&gt;#BIO&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;Blocking IO 同步阻塞IO,在刚学习socket时用的io是bio&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;同步: 是否要亲自去监听操作，不断进行关注，是否已经完成对应操作。&lt;/li&gt;
+  &lt;li&gt;阻塞：io操作如果没有完成，在单线程的环境下，其他客户端是不能够连接上。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;解决阻塞问题：对于创建多线程去处理
+存在问题：针对多个客户端的连接，服务端的纯种数据量肯定是会增加的。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;创建线程只发生io的时候。&lt;/li&gt;
+  &lt;li&gt;多次开启与关闭
+    &lt;h1 id=&quot;niojdk14引用chanal-与selectorbuffer&quot;&gt;NIO（JDK1.4），引用chanal 与selector\buffer&lt;/h1&gt;
+    &lt;blockquote&gt;
+      &lt;p&gt;New IO(No-Blocking IO), 同步非阻塞&lt;/p&gt;
+      &lt;ul&gt;
+        &lt;li&gt;同步&lt;/li&gt;
+        &lt;li&gt;非阻塞&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/blockquote&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+</description>
+        <pubDate>Tue, 26 Mar 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/26/NIO-BIO-AIO%E6%9C%89%E5%8C%BA%E5%88%AB/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/26/NIO-BIO-AIO%E6%9C%89%E5%8C%BA%E5%88%AB/</guid>
+        
+        <category>io</category>
+        
+        <category>java</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>静态代理、动态代码</title>
+        <description>&lt;h1 id=&quot;静态代理&quot;&gt;静态代理&lt;/h1&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/E40E7A1002A7CF29634D585CEDB7F19B.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;动态代理&quot;&gt;动态代理&lt;/h1&gt;
+&lt;h2 id=&quot;jdk代理&quot;&gt;JDK代理&lt;/h2&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;jvm在运行运行时动态生成相应字节码，参数类加载器加载到jvm中运行，被代理的对象一定是接口.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Person接口
+```
+public interface Person {&lt;/p&gt;
+
+    &lt;p&gt;void appointment();
+}&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;```- Person的实现&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public class PanJinLian implements Person {
+    @Override
+    public void appointment() {
+        System.out.println(&quot;等一会大郎出门先！&quot;);
+    }
+}
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;ul&gt;
+  &lt;li&gt;代理&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public class JDKProxy implements InvocationHandler {
+
+    private Object targetObject;
+
+
+    //先是创建代理类
+    public Object newProxy(Object targetObject) {
+        this.targetObject = targetObject;
+        //通过Proxy创建一个代理类。同时把当前代理注册到Proxy中
+        return Proxy.newProxyInstance(targetObject.getClass().getClassLoader(), targetObject.getClass().getInterfaces(), this);
+    }
+
+    /**
+     * 生成的代理的类会回调这个方法
+     * @param proxy
+     * @param method
+     * @param args
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println(&quot;黄婆去约潘金莲！&quot;);
+        //反射方法的的调用
+        Object invoke = method.invoke(targetObject, args);
+        System.out.println(&quot;不约&quot;);
+        return invoke;
+    }
+}
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;ul&gt;
+  &lt;li&gt;运行代理&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public class JDKTest {
+
+public static void main(String[] args) {
+    Person person = new PanJinLian();
+    JDKProxy jdkProxy = new JDKProxy();
+    Person personProxy = (Person) jdkProxy.newProxy(person);
+    personProxy.appointment();
+    //把动态生成的字节码写到文件中
+    writeClassToDisk(&quot;/Users/tanliu/code/tanliu/microservices-project/spring-mvc-view/target/classes/com/tanliu/PersonProxy.class&quot;);
+
+}
+
+public static void writeClassToDisk(String path) {
+    byte[] classFile = ProxyGenerator.generateProxyClass(&quot;$proxy4&quot;, new Class[]{Person.class});
+    FileOutputStream fos = null;
+    try {
+        fos = new FileOutputStream(path);
+        fos.write(classFile);
+        fos.flush();
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        if (fos != null) {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+}
+
+
+```- 运行时代码生成的代码
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;//jdk的原理生成代码是继承了Proxy的，实现业务接口。java不支持多重继承。所以只对接口有效果
+public final class $proxy4 extends Proxy implements Person {
+    //通过反射获取每人方法的对象
+    private static Method m1;
+    private static Method m2;
+    private static Method m3;
+    private static Method m0;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public $proxy4(InvocationHandler var1) throws  {
+    super(var1);
+}
+
+public final boolean equals(Object var1) throws  {
+    try {
+        return (Boolean)super.h.invoke(this, m1, new Object[]{var1});
+    } catch (RuntimeException | Error var3) {
+        throw var3;
+    } catch (Throwable var4) {
+        throw new UndeclaredThrowableException(var4);
+    }
+}
+
+public final String toString() throws  {
+    try {
+        return (String)super.h.invoke(this, m2, (Object[])null);
+    } catch (RuntimeException | Error var2) {
+        throw var2;
+    } catch (Throwable var3) {
+        throw new UndeclaredThrowableException(var3);
+    }
+}
+
+
+public final void appointment() throws  {
+    try {
+        super.h.invoke(this, m3, (Object[])null);
+    } catch (RuntimeException | Error var2) {
+        throw var2;
+    } catch (Throwable var3) {
+        throw new UndeclaredThrowableException(var3);
+    }
+}
+
+public final int hashCode() throws  {
+    try {
+        return (Integer)super.h.invoke(this, m0, (Object[])null);
+    } catch (RuntimeException | Error var2) {
+        throw var2;
+    } catch (Throwable var3) {
+        throw new UndeclaredThrowableException(var3);
+    }
+}
+
+static {
+    try {
+        m1 = Class.forName(&quot;java.lang.Object&quot;).getMethod(&quot;equals&quot;, Class.forName(&quot;java.lang.Object&quot;));
+        m2 = Class.forName(&quot;java.lang.Object&quot;).getMethod(&quot;toString&quot;);
+        m3 = Class.forName(&quot;com.tanliu.Person&quot;).getMethod(&quot;appointment&quot;);
+        m0 = Class.forName(&quot;java.lang.Object&quot;).getMethod(&quot;hashCode&quot;);
+    } catch (NoSuchMethodException var2) {
+        throw new NoSuchMethodError(var2.getMessage());
+    } catch (ClassNotFoundException var3) {
+        throw new NoClassDefFoundError(var3.getMessage());
+    }
+} }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;## 2.CGLIG代理
+- 被代理类（没有实现接口）
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;public class PanJinLianNoInterface {&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public void appointment() {
+    System.out.println(&quot;cglib等一会大郎出门先！&quot;);
+} }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- 代理实现
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;public class CglibProxy implements MethodInterceptor {&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;private Object target;
+
+public Object getInstance(Object target){
+    this.target = target;
+    Enhancer enhancer = new Enhancer();
+    //可见这是创建子类
+    enhancer.setSuperclass(this.target.getClass());
+    //子类回调MethodInterceptor的intercept方法
+    enhancer.setCallback(this);
+    return enhancer.create();
+}
+
+@Override
+public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+
+    System.out.println(&quot;cglib黄婆去约潘金莲！&quot;);
+    //反射方法的的调用
+    Object invoke = methodProxy.invokeSuper(o, args);
+    System.out.println(&quot;cglib不约&quot;);
+    return invoke;
+} }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- 测试
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;public class CglibTest {&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static void main(String[] args) {
+    System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, &quot;/Users/tanliu/code/tanliu/microservices-project/spring-mvc-view/target/classes/com/tanliu/&quot;);
+    CglibProxy cglibProxy = new CglibProxy();
+    PanJinLianNoInterface instance = (PanJinLianNoInterface) cglibProxy.getInstance(new PanJinLianNoInterface());
+    instance.appointment();
+} }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+- 生成的代理
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;//继承 PanJinLianNoInterface同时也实现了Factory
+public class PanJinLianNoInterface&lt;script type=&quot;math/tex&quot;&gt;EnhancerByCGLIB&lt;/script&gt;aa2ce3a9 extends PanJinLianNoInterface implements Factory {&lt;/p&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+&lt;h2 id=&quot;jdk代理与cglib代理的区别&quot;&gt;jdk代理与cglib代理的区别&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;jdk动态代理必须实现接口，通过反射来动态代理方法，消耗系统性能。但是无需产生过多的代理类，避免了重复代码的产生，系统更加灵活。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;cglib动态代理无需实现接口，通过生成子类字节码来实现，比反射快一点，没有性能问题。但是由于cglib会继承被代理类，需要重写被代理方法，所以被代理类不能是final类，被代理方法不能是final。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;#Spring中AOP代理的使用&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 25 Mar 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/25/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%A0%81/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/25/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%A0%81/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>线程</title>
+        <description>&lt;h2 id=&quot;线程的生命周期&quot;&gt;线程的生命周期&lt;/h2&gt;
+&lt;p&gt;https://juejin.im/post/5a72d4bd518825735300f37b&lt;/p&gt;
+&lt;h2 id=&quot;如何停止线程&quot;&gt;如何停止线程&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;interrupt：不是立刻停止的&lt;/li&gt;
+  &lt;li&gt;volatile boolean stop&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;threadjoin的实现原理&quot;&gt;Thread.join的实现原理&lt;/h2&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    public final synchronized void join(long millis)
+    throws InterruptedException {
+        long base = System.currentTimeMillis();
+        long now = 0;
+
+        if (millis &amp;lt; 0) {
+            throw new IllegalArgumentException(&quot;timeout value is negative&quot;);
+        }
+
+        if (millis == 0) {
+            
+            while (isAlive()) {
+              //调用join的时候，就会不断在等, 直到notifyAll时才会唤醒
+                wait(0);
+            }
+        } else {
+            while (isAlive()) {
+                long delay = millis - now;
+                if (delay &amp;lt;= 0) {
+                    break;
+                }
+                wait(delay);
+                now = System.currentTimeMillis() - base;
+            }
+        }
+    }
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;notifiyall 才会提启动&lt;/p&gt;
+
+&lt;h2 id=&quot;threadloacl&quot;&gt;ThreadLoacl&lt;/h2&gt;
+
+&lt;h2 id=&quot;线程池的实现原理分析&quot;&gt;线程池的实现原理分析&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/B390F00BA6CC32B9E1328B43583144CE.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+corePool的流程不会被回收
+maxPool的会被回收，增加&lt;/p&gt;
+
+&lt;h2 id=&quot;volatile-线程可见性&quot;&gt;volatile 线程可见性&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/AD6DE340BEA7C539E05712CFD764F950.jpg&quot; alt=&quot;IMAGE&quot; /&gt;
+1.内存屏障
+&lt;img src=&quot;http://cn-isoda-oss.yy.com/admin/video/10E47985ABC339D0F62B2BF58B50C793.jpg&quot; alt=&quot;IMAGE&quot; /&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 22 Mar 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/22/%E7%BA%BF%E7%A8%8B/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/22/%E7%BA%BF%E7%A8%8B/</guid>
+        
+        <category>java 线程</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>集合解说</title>
+        <description>&lt;p&gt;#List&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;list有序，可以重复的。list中主要解说ArrayList&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;1.ArrayList的数据结构&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;是一个可变长度的动态数组&lt;/li&gt;
+  &lt;li&gt;动态扩容（初始化大小为10，以2倍的速度扩容）&lt;/li&gt;
+  &lt;li&gt;第一个add的时候才会创建数据&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;#Set
+1.HashSet对HashMap的一个包装
+2.HashSet对TreeMap的一个包装&lt;/p&gt;
+
+&lt;p&gt;#HashMap
+1.hashMap的原理，内部数据结构是怎么样的？&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;数组+链表（Node）实现。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  static class Node&amp;lt;K,V&amp;gt; implements Map.Entry&amp;lt;K,V&amp;gt; {
+      final int hash;
+      final K key;
+      V value;
+      Node&amp;lt;K,V&amp;gt; next;
+
+      Node(int hash, K key, V value, Node&amp;lt;K,V&amp;gt; next) {
+          this.hash = hash;
+          this.key = key;
+          this.value = value;
+          this.next = next;
+      }
+
+      public final K getKey()        { return key; }
+      public final V getValue()      { return value; }
+      public final String toString() { return key + &quot;=&quot; + value; }
+
+      public final int hashCode() {
+          return Objects.hashCode(key) ^ Objects.hashCode(value);
+      }
+
+      public final V setValue(V newValue) {
+          V oldValue = value;
+          value = newValue;
+          return oldValue;
+      }
+
+      public final boolean equals(Object o) {
+          if (o == this)
+              return true;
+          if (o instanceof Map.Entry) {
+              Map.Entry&amp;lt;?,?&amp;gt; e = (Map.Entry&amp;lt;?,?&amp;gt;)o;
+              if (Objects.equals(key, e.getKey()) &amp;amp;&amp;amp;
+                  Objects.equals(value, e.getValue()))
+                  return true;
+          }
+          return false;
+      }
+  }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;2.hash算法的作用&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;得到数据数组下标。hashCode&amp;amp;15的方式
+3.put一个数据的流程是怎么样的。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  
+    final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) {
+        Node&amp;lt;K,V&amp;gt;[] tab; Node&amp;lt;K,V&amp;gt; p; int n, i;
+        //如果数组还没有创建的时候初始化。大小为16
+        if ((tab = table) == null || (n = tab.length) == 0)
+            n = (tab = resize()).length;
+        // 如果没有node节点，就创建节点。基本 (n - 1) &amp;amp; hash为数据的hash算法   
+        if ((p = tab[i = (n - 1) &amp;amp; hash]) == null)
+            tab[i] = newNode(hash, key, value, null);
+        //数据这个node节点已经存在    
+        else {
+            Node&amp;lt;K,V&amp;gt; e; K k;
+            //如果这个key存在的就会覆盖
+            if (p.hash == hash &amp;amp;&amp;amp;
+                ((k = p.key) == key || (key != null &amp;amp;&amp;amp; key.equals(k))))
+                e = p;
+            //如果节点是红黑树，就会把数据put到红黑树    
+            else if (p instanceof TreeNode)
+                e = ((TreeNode&amp;lt;K,V&amp;gt;)p).putTreeVal(this, tab, hash, key, value);
+            else {
+                for (int binCount = 0; ; ++binCount) {
+                    //把数据放入到最后一个节点
+                    if ((e = p.next) == null) {
+                        p.next = newNode(hash, key, value, null);
+                        //如果节点数大于8的时候就会把节点重构是红黑树
+                        if (binCount &amp;gt;= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                            treeifyBin(tab, hash);
+                        break;
+                    }
+                    if (e.hash == hash &amp;amp;&amp;amp;
+                        ((k = e.key) == key || (key != null &amp;amp;&amp;amp; key.equals(k))))
+                        break;
+                    p = e;
+                }
+            }
+            //覆盖
+            if (e != null) { // existing mapping for key
+                V oldValue = e.value;
+                if (!onlyIfAbsent || oldValue == null)
+                    e.value = value;
+                afterNodeAccess(e);
+                return oldValue;
+            }
+        }
+        ++modCount;
+        //扩容，因子是0.75。
+        if (++size &amp;gt; threshold)
+            resize();
+        afterNodeInsertion(evict);
+        return null;
+    }
+
+
+``` - 扩容后数组如何处理。
+   - 数组有元素，下面的节点为null
+   - 数组位置有元素,下面为不空的链表
+   - 数据位置有元素，下面不空的红黑树
+   
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;final Node&amp;lt;K,V&amp;gt;[] resize() {
+    Node&amp;lt;K,V&amp;gt;[] oldTab = table;
+    int oldCap = (oldTab == null) ? 0 : oldTab.length;
+    int oldThr = threshold;
+    int newCap, newThr = 0;
+    if (oldCap &amp;gt; 0) {
+        if (oldCap &amp;gt;= MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
+            return oldTab;
+        }
+        else if ((newCap = oldCap &amp;lt;&amp;lt; 1) &amp;lt; MAXIMUM_CAPACITY &amp;amp;&amp;amp;
+                 oldCap &amp;gt;= DEFAULT_INITIAL_CAPACITY)
+            newThr = oldThr &amp;lt;&amp;lt; 1; // double threshold
+    }
+    else if (oldThr &amp;gt; 0) // initial capacity was placed in threshold
+        newCap = oldThr;
+    else {  
+       // zero initial threshold signifies using defaults
+       //初始化
+        newCap = DEFAULT_INITIAL_CAPACITY;
+        newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+    }
+    if (newThr == 0) {
+        float ft = (float)newCap * loadFactor;
+        newThr = (newCap &amp;lt; MAXIMUM_CAPACITY &amp;amp;&amp;amp; ft &amp;lt; (float)MAXIMUM_CAPACITY ?
+                  (int)ft : Integer.MAX_VALUE);
+    }
+    threshold = newThr;
+    @SuppressWarnings({&quot;rawtypes&quot;,&quot;unchecked&quot;})
+        Node&amp;lt;K,V&amp;gt;[] newTab = (Node&amp;lt;K,V&amp;gt;[])new Node[newCap];
+    table = newTab;
+    if (oldTab != null) {
+        for (int j = 0; j &amp;lt; oldCap; ++j) {
+            Node&amp;lt;K,V&amp;gt; e;
+            if ((e = oldTab[j]) != null) {
+                oldTab[j] = null;
+                if (e.next == null)
+                    // 数组有元素，下面的节点为null
+                    newTab[e.hash &amp;amp; (newCap - 1)] = e;
+                else if (e instanceof TreeNode)
+                    //数据位置有元素，下面不空的红黑树
+                    ((TreeNode&amp;lt;K,V&amp;gt;)e).split(this, newTab, j, oldCap);
+                else { // preserve order
+                    Node&amp;lt;K,V&amp;gt; loHead = null, loTail = null;
+                    Node&amp;lt;K,V&amp;gt; hiHead = null, hiTail = null;
+                    Node&amp;lt;K,V&amp;gt; next;
+                    do {
+                        next = e.next;
+                        //新的位置不是原来的，就是原来的*2
+                        if ((e.hash &amp;amp; oldCap) == 0) {
+                            if (loTail == null)
+                                loHead = e;
+                            else
+                                loTail.next = e;
+                            loTail = e;
+                        }
+                        else {
+                            if (hiTail == null)
+                                hiHead = e;
+                            else
+                                hiTail.next = e;
+                            hiTail = e;
+                        }
+                    } while ((e = next) != null);
+                    if (loTail != null) {
+                        loTail.next = null;
+                        newTab[j] = loHead;
+                    }
+                    if (hiTail != null) {
+                        hiTail.next = null;
+                        newTab[j + oldCap] = hiHead;
+                    }
+                }
+            }
+        }
+    }
+    return newTab;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;p&gt;4.HashMap的红黑树&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;红黑树是在jdk1.8才会用的&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 19 Mar 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/19/%E9%9B%86%E5%90%88%E8%A7%A3%E8%AF%B4/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/19/%E9%9B%86%E5%90%88%E8%A7%A3%E8%AF%B4/</guid>
+        
+        
+      </item>
+    
+  </channel>
+</rss>

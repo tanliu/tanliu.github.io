@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>Class类分析及字节码解读 - 你的博客 | 坛子成长记</title>
+
+    <link rel="canonical" href="http://localhost:4000/2018/08/22/Class%E7%B1%BB%E5%88%86%E6%9E%90%E5%8F%8A%E5%AD%97%E8%8A%82%E7%A0%81%E8%A7%A3%E8%AF%BB/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="/css/syntax.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="http://cdn.staticfile.org/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">坛子成长记</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/">Tags</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="/img/home-bg.jpg" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('/img/home-bg.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#jvm" title="jvm">jvm</a>
+                        
+                    </div>
+                    <h1>Class类分析及字节码解读</h1>
+                    
+                    
+                    <h2 class="subheading"></h2>
+                    
+                    <span class="meta">Posted by 坛子成长记 on August 22, 2018</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h1 id="class类分析">Class类分析</h1>
+<p>官方文档：<a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html">参考</a>
+Class类文件：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+ClassFile {
+  u4 magic; // 魔法数字，表明当前文件是.class文件，固定0xCAFEBABE 教育 u2 minor_version; // 分别为Class文件的副版本和主版本 服 u2 major_version; 务 u2 constant_pool_count; // 常量池计数 平台 cp_info constant_pool[constant_pool_count-1]; //
+  u2 access_flags; // 类访问标识
+  u2 this_class; // 当前类
+  u2 super_class; // 父类
+  u2 interfaces_count; // 实现的接口数
+  u2 interfaces[interfaces_count]; // 实现接口信息
+  u2 fields_count; // 字段数量
+  field_info fields[fields_count]; // 包含的字段信息
+  u2 methods_count; // 方法数量
+  method_info methods[methods_count]; // 包含的方法信息
+  u2 attributes_count; // 属性数量
+  attribute_info attributes[attributes_count]; // 各种属性
+}
+
+
+```由以上可以发现类的结构是这样的：
+  - 魔数
+  - Class文件版本
+  - 常量池
+  - 访问标志
+  - 类索引，父类索引，接口索引集合
+  - 字段表集合
+  - 方法表集合
+  - 属性表集合
+  
+# 字节码解读
+
+java语言文件：
+</code></pre></div></div>
+
+<p>public class Test1 {
+	public static void main(String args) {
+		int a=2;
+		int b=400;
+		int c = a + b;
+		System.out.println(c);
+	}
+}</p>
+
+<pre><code class="language-生成的字节码：">
+</code></pre>
+<p>/***
+	 public static void main(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC   #关键字
+    Code:
+      # 操作数栈的深度2
+      # 本地变量表最大长度（slot为单位），64位的是2，其他是1，索引从0开始，如果是非static方法索引0代表this，后面是入参，后面是本地变量
+      # 1个参数，实例方法多一个this参数
+      stack=2, locals=4, args_size=1
+         0: iconst_2  #常量2压栈
+         1: istore_1  #出栈保存到本地变量1里面
+         2: iconst_3  #常量3压栈
+         3: istore_2  #出栈保存到本地变量2里面
+         4: iload_1    #局部变量1压栈
+         5: iload_2    #局部变量2压栈
+         6: iadd        # 栈顶两个元素相加，计算结果压栈
+         7: istore_3  # 出栈保存到局部变量3里面
+         8: getstatic     #16                 // Field java/lang/System.out:Ljava/io/PrintStream;
+        11: iload_3
+        12: invokevirtual #22                 // Method java/io/PrintStream.println:(I)V
+        15: return
+      LineNumberTable:
+        line 5: 0
+        line 6: 2
+        line 7: 4
+        line 8: 8
+        line 9: 15
+      LocalVariableTable:                   //本地变更表
+        Start  Length  Slot  Name   Signature
+            0      16     0  args   Ljava/lang/String;
+            2      14     1     a   I
+            4      12     2     b   I
+            8       8     3     c   I
+	 **/</p>
+
+<pre><code class="language-以上已经对字所有解释都是注释;">
+## 案例一:StringBuilder与'+'的性参比较
+
+</code></pre>
+<p>public class StringAdd {
+	public static void main(String[] args) {
+	}</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/**
+ public static void f1();
+descriptor: ()V
+flags: ACC_PUBLIC, ACC_STATIC
+Code:
+  stack=3, locals=2, args_size=0
+     0: ldc           #19                 // String
+     2: astore_0
+     3: iconst_0
+     4: istore_1
+     5: goto          31
+     8: new           #21                 // class java/lang/StringBuilder
+    11: dup
+    12: aload_0
+    13: invokestatic  #23                 // Method java/lang/String.valueOf:(Ljava/lang/Object;)Ljava/lang/String;
+    16: invokespecial #29                 // Method java/lang/StringBuilder."&lt;init&gt;":(Ljava/lang/String;)V   new StringBuilder（src）
+    19: ldc           #32                 // String A
+    21: invokevirtual #34                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    24: invokevirtual #38                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    27: astore_0
+    28: iinc          1, 1
+    31: iload_1
+    32: bipush        10
+    34: if_icmplt     8
+    37: getstatic     #42                 // Field java/lang/System.out:Ljava/io/PrintStream;
+    40: aload_0
+    41: invokevirtual #48                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+    44: return
+ * */
+public static void f1() {
+	String src = "";
+	for(int i=0;i&lt;10;i++) {
+		//每一次循环都会new一个StringBuilder
+		src = src + "A";
+	}
+	System.out.println(src);
+}
+
+/**
+ *
+ *  public static void f2();
+ Code:
+ 0: new           #3                  // class java/lang/StringBuilder
+ 3: dup
+ 4: invokespecial #4                  // Method java/lang/StringBuilder."&lt;init&gt;":()V
+ 7: astore_0
+ 8: iconst_0
+ 9: istore_1
+ 10: iload_1
+ 11: bipush        10
+ 13: if_icmpge     29
+ 16: aload_0
+ 17: ldc           #6                  // String A
+ 19: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 22: pop
+ 23: iinc          1, 1
+ 26: goto          10
+ 29: getstatic     #8                  // Field java/lang/System.out:Ljava/io/PrintStream;
+ 32: aload_0
+ 33: invokevirtual #10                 // Method java/io/PrintStream.println:(Ljava/lang/Object;)V
+ 36: return
+ */
+
+public static void f2() {
+	//只要一个StringBuilder
+	StringBuilder src = new StringBuilder();
+	for(int i=0;i&lt;10;i++) {
+		src.append("A");
+	}
+	System.out.println(src);
+}
+</code></pre></div></div>
+
+<pre><code class="language-从字节码中可以看出f1在循环中不断创建StringBuilder。所以f2&gt;f1">
+## 案例二 Finally中reture的值
+&gt; 返回值是hello还是tanliu
+
+</code></pre>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/**
+ public static java.lang.String f1();
+descriptor: ()Ljava/lang/String;
+flags: ACC_PUBLIC, ACC_STATIC
+Code:
+  stack=1, locals=3, args_size=0
+     0: ldc           #34                 // String hello  （加载数据）
+     2: astore_0                                            //赋值
+     3: aload_0												//压栈
+     4: astore_2                 							//赋值（return）
+     5: ldc           #36                 // String tanliu   //加载常量
+     7: astore_0
+     8: aload_2                                             //压栈
+     9: areturn
+    10: astore_1
+    11: ldc           #36                 // String tanliu
+    13: astore_0
+    14: aload_1
+    15: athrow
+ * */
+public static String f1() {
+	String str = "hello";
+    try{
+        return str;
+    }
+    finally{
+        str = "tanliu";
+    }
+}
+</code></pre></div></div>
+
+<p>```
+ 从字节码中可以看出reture的是aload_2。已经压到栈中了。后面再修改str也是没用的了。栈中的值还是不会发生变化</p>
+
+
+                <hr>
+
+                
+                <!-- 多说 Share start -->
+                </style>
+                <div class="ds-share"
+                    style="text-align: right"
+                    data-thread-key="/2018/08/22/Class类分析及字节码解读"
+                    data-title="Class类分析及字节码解读"
+                    data-url="http://localhost:4000/2018/08/22/Class%E7%B1%BB%E5%88%86%E6%9E%90%E5%8F%8A%E5%AD%97%E8%8A%82%E7%A0%81%E8%A7%A3%E8%AF%BB/"
+                    data-images="http://localhost:4000/img/home-bg.jpg"
+                    data-content="Class类分析
+官方文档：参考
+Class类文件：
+
+ClassFile {
+  u4 magic; // 魔法数字，表明当前文件是.class文件，固... | 你的博客 | 坛子成长记 " >
+                    <div class="ds-share-inline">
+                      <ul  class="ds-share-icons-16">
+                        <li data-toggle="ds-share-icons-more"><a class="ds-more" href="#">分享到：</a></li>
+                        <li><a class="ds-wechat flat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+                        <li><a class="ds-weibo flat" href="javascript:void(0);" data-service="weibo">微博</a></li>
+                        <li><a class="ds-douban flat" href="javascript:void(0);" data-service="douban">豆瓣</a></li>
+                      </ul>
+                      <div class="ds-share-icons-more">
+                      </div>
+                    </div>
+                <hr>
+                </div>
+                <!-- 多说 Share end-->
+                
+
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2018/07/31/zookeeper%E9%83%A8%E7%BD%B2%E4%B8%8E%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/" data-toggle="tooltip" data-placement="top" title="zookeeper部署与配置详解">&larr; Previous Post</a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2018/08/22/zookeeper%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" data-toggle="tooltip" data-placement="top" title="zookeeper的实现原理">Next Post &rarr;</a>
+                    </li>
+                    
+                </ul>
+
+
+                
+                <!-- 多说评论框 start -->
+                <div class="comment">
+                    <div class="ds-thread"
+                        data-thread-key="/2018/08/22/Class类分析及字节码解读"
+                        data-title="Class类分析及字节码解读"
+                        data-url="http://localhost:4000/2018/08/22/Class%E7%B1%BB%E5%88%86%E6%9E%90%E5%8F%8A%E5%AD%97%E8%8A%82%E7%A0%81%E8%A7%A3%E8%AF%BB/" >
+                    </div>
+                </div>
+                <!-- 多说评论框 end -->
+                
+
+                
+
+            </div>
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+                				<a href="/tags/#前端开发" title="前端开发" rel="3">
+                                    前端开发
+                                </a>
+                            
+        				
+                            
+                				<a href="/tags/#JavaScript" title="JavaScript" rel="3">
+                                    JavaScript
+                                </a>
+                            
+        				
+                            
+        				
+                            
+                				<a href="/tags/#zookeeper" title="zookeeper" rel="3">
+                                    zookeeper
+                                </a>
+                            
+        				
+                            
+                				<a href="/tags/#jvm" title="jvm" rel="5">
+                                    jvm
+                                </a>
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+                				<a href="/tags/#java" title="java" rel="4">
+                                    java
+                                </a>
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+        			</div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="http://huangxuan.me">Hux Blog</a></li>
+                    
+                        <li><a href="#">Foo</a></li>
+                    
+                        <li><a href="#">Bar</a></li>
+                    
+                        <li><a href="#">Example Friends</a></li>
+                    
+                        <li><a href="#">It helps SEO</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    // dynamic User by Hux
+    var _user = 'huxblog';
+
+    // duoshuo comment query.
+    var duoshuoQuery = {short_name: _user };
+    (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';ds.async = true;
+        ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0]
+         || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+</script>
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("http://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+                    
+
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/huxpro">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="http://weibo.com/huxpro">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+
+
+                    
+                    <li>
+                        <a target="_blank" href="https://www.facebook.com/huxpro">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/huxpro">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; 坛子成长记 2019
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huxpro&repo=huxpro.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("http://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = 'huangxuan.me';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = '4cc1f2d8f3067386cc5cdb626a202900';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
