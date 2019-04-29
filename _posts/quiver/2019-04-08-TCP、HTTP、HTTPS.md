@@ -4,8 +4,6 @@ title: TCP、HTTP、HTTPS
 date: 2019-04-08
 tags:
    - 网络
-   - http
-   - tcp
 ---
 ![IMAGE](http://cn-isoda-oss.yy.com/admin/video/539B465A7785885AEB82C085773EE711.jpg)
 
