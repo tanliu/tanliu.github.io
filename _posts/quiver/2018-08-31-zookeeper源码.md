@@ -31,6 +31,7 @@ Note over Zookeeper: defaultWatchManager() \n 创建默认watchManager
 Note over Zookeeper: createConnection（） \n 创建连接
 Zookeeper -> ClientCnxn : start() 启动两个线程: \n sendThread.start(); \neventThread.start();
 </div>
+
 ```
 源码如下：
 ```
@@ -64,7 +65,8 @@ Zookeeper -> ClientCnxn : start() 启动两个线程: \n sendThread.start(); \ne
 ```
 
 
-```## Watcher原理
+```
+## Watcher原理
 ### 客户端
 
 <div class="sequence">Note over Zookeeper: exists()

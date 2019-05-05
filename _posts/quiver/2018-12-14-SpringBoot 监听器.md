@@ -11,6 +11,7 @@ tags:
 
 ## 使用案例
 
+
 ```
 public class SpringEventListenerDemo {
 
@@ -43,12 +44,14 @@ public class SpringEventListenerDemo {
 }
 
 ```
+
 以上代码当context.publishEvent("hello L.Tan")的时候，配置的全局监听会收到事件。同时context也监听了关闭事件， 当context.close（）的时候会发出close!
 
 
 #spring生产者注册都的机制
 ![Spring的事件机制.jpg](quiver-image-url/5C7A48B75CAEE10303C48E2B3AD40746.png =612x460)
 ## 1.发布事件的源码
+
 ```
 	protected void publishEvent(Object event, @Nullable ResolvableType eventType) {
 		Assert.notNull(event, "Event must not be null");
@@ -91,7 +94,9 @@ public class SpringEventListenerDemo {
 
 
 ```
+
 ## 广播事件的源码
+
 
 ```
 	@Override
@@ -111,6 +116,7 @@ public class SpringEventListenerDemo {
 
 
 ```
+
 #spring boot启动过程相关事件
 
 &emsp;由于需要监听AplicationContext的生命周期，所以不可以通过提@Bean的方式创建的。spring提供了两种创建方式。第一个是SpringApplicationBuilder.listeners(…​)的方式。另外一种是配置在META-INF/spring.factories中。期中。springboot的就是配置在**META-INF/spring.factories**下的。以下是spring boot的配置。

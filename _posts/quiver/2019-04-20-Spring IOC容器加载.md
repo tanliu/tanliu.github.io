@@ -11,6 +11,7 @@ date: 2019-04-20
 - AutowireCapableBeanFactory 接口定义 Bean 的自动装配规则
 
 
+
 ```
 public interface BeanFactory {
     //对 FactoryBean 的转义定义，因为如果使用 bean 的名字检索 FactoryBean 得到的对象是工厂生成的对象， //如果需要得到工厂本身，需要转义
@@ -36,6 +37,7 @@ public interface BeanFactory {
 
 
 
+
 # ApplicationContext
 ApplicationContext 是 Spring 提供的一个高级的 IOC 容器，它除了能够提供 IOC 容器的基本功 能外，还为用户提供了以下的附加服务。
 从 ApplicationContext 接口的实现，我们看出其特点:
@@ -58,6 +60,7 @@ Bean 的解析过程非常复杂，功能被分的很细，因为这里需要被
 ## 定位
 先从FileSystemXmlApplicationContext入手。
 
+
 ```
 public FileSystemXmlApplicationContext(
 		String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
@@ -72,8 +75,11 @@ public FileSystemXmlApplicationContext(
 	}
 }
 
-```进入一步查看super方法，AbstractApplicationContext 构造方法中调用 PathMatchingResourcePatternResolver 的构造 方法创建 Spring 资源加载器。
+```
+
+进入一步查看super方法，AbstractApplicationContext 构造方法中调用 PathMatchingResourcePatternResolver 的构造 方法创建 Spring 资源加载器。
 在设置容器的资源加载器之后，接下来 FileSystemXmlApplicationContext 执行 setConfigLocations 方法通过调用其父类 AbstractRefreshableConfigApplicationContext 的 方法进行对 Bean 定义资源文件的定位。
+
 
 
 ```
@@ -120,8 +126,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 
 ```
+
 ## 加载
 AbstractApplicationContext 的 refresh 函数载入 Bean 定义过程:
+
 ```
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
@@ -205,7 +213,8 @@ AbstractApplicationContext 的 refresh 函数载入 Bean 定义过程:
 	}
 
 
-```refresh()方法的作用是:在创建 IOC 容器前，如果已经有容器存在，则需要把已有的容器销毁和关 闭，以保证在 refresh 之后使用的是新建立起来的 IOC 容器。refresh 的作用类似于对 IOC 容器的重 启，在新建立好的容器中对容器进行初始化，对 Bean 定义资源进行载入
+```
+refresh()方法的作用是:在创建 IOC 容器前，如果已经有容器存在，则需要把已有的容器销毁和关 闭，以保证在 refresh 之后使用的是新建立起来的 IOC 容器。refresh 的作用类似于对 IOC 容器的重 启，在新建立好的容器中对容器进行初始化，对 Bean 定义资源进行载入
 # 方法调用流程
 ![IMAGE](http://cn-isoda-oss.yy.com/admin/video/EC5DF8066E100689A8A13AE7FBC26FBE.jpg)
  

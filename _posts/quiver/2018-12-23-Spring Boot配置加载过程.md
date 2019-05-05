@@ -13,6 +13,7 @@ http://127.0.0.1:9091/actuator/env
 # 源码分析
 
 `org.springframework.boot.SpringApplication#configurePropertySources`
+
 ```
 	protected void configurePropertySources(ConfigurableEnvironment environment,
 			String[] args) {
