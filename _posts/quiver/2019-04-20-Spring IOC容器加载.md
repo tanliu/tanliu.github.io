@@ -9,6 +9,8 @@ date: 2019-04-20
 - ListableBeanFactory 接口表示这些 Bean 是可列表的，
 - HierarchicalBeanFactory 表示的是这些 Bean 是有继承关系的，也就是每个 Bean 有可能有父 Bean。
 - AutowireCapableBeanFactory 接口定义 Bean 的自动装配规则
+
+
 ```
 public interface BeanFactory {
     //对 FactoryBean 的转义定义，因为如果使用 bean 的名字检索 FactoryBean 得到的对象是工厂生成的对象， //如果需要得到工厂本身，需要转义
@@ -31,6 +33,9 @@ public interface BeanFactory {
 }
 
 ```
+
+
+
 # ApplicationContext
 ApplicationContext 是 Spring 提供的一个高级的 IOC 容器，它除了能够提供 IOC 容器的基本功 能外，还为用户提供了以下的附加服务。
 从 ApplicationContext 接口的实现，我们看出其特点:
