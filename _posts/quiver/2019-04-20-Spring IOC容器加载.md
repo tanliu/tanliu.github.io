@@ -2,6 +2,8 @@
 layout: post
 title: Spring IOC容器加载
 date: 2019-04-20
+tags:
+   - spring boot
 ---
 # BeanFactory
  ![IMAGE](http://cn-isoda-oss.yy.com/admin/video/5B4F0A12C04014AE7CF4FD60EC4E6E52.jpg)
@@ -222,7 +224,7 @@ refresh()方法的作用是:在创建 IOC 容器前，如果已经有容器存�
 # BeanFactory 与 FactoryBean的区别
 在 Spring 中，有两个很容易混淆的类:BeanFactory 和 FactoryBean。
 - BeanFactory:Bean 工厂，是一个工厂(Factory)，我们 Spring IOC 容器的最顶层接口就是这个 BeanFactory，它的作用是管理 Bean，即实例化、定位、配置应用程序中的对象及建立这些对象间的 依赖。
-FactoryBean:工厂 Bean，是一个 Bean，作用是产生其他 bean 实例。通常情况下，这种 bean 没有什 么特别的要求，仅需要提供一个工厂方法，该方法用来返回其他 bean 实例。通常情况下，bean 无须自 己实现工厂模式，Spring 容器担任工厂角色;但少数情况下，容器中的 bean 本身就是工厂，其作用是 产生其它 bean 实例。
+- FactoryBean:工厂 Bean，是一个 Bean，作用是产生其他 bean 实例。通常情况下，这种 bean 没有什 么特别的要求，仅需要提供一个工厂方法，该方法用来返回其他 bean 实例。通常情况下，bean 无须自 己实现工厂模式，Spring 容器担任工厂角色;但少数情况下，容器中的 bean 本身就是工厂，其作用是 产生其它 bean 实例。
 当用户使用容器本身时，可以使用转义字符”&”来得到 FactoryBean 本身，以区别通过 FactoryBean 产生的实例对象和 FactoryBean 对象本身。在 BeanFactory 中通过如下代码定义了该转义字符: String FACTORY_BEAN_PREFIX = "&";
 如果 myJndiObject 是一个 FactoryBean，则使用&myJndiObject 得到的是 myJndiObject 对象，而 不是 myJndiObject 产生出来的对象。
 
